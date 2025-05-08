@@ -25,11 +25,12 @@ void right();
 void randomInt();
 void outputWithFormat();
 void initialRandomInt();
-
-
+bool canContinue();
 
 void setup() {
   // put your setup code here, to run once:
+  //digitalWrite(7,1);
+  randomSeed(analogRead(0));
   Serial.begin(115200);
   lcd.print("Beginning ...");
   for (int i = 0; i < 4; i++) {
@@ -40,6 +41,7 @@ void setup() {
   initialRandomInt();
   delay(500);
   outputWithFormat();
+  //digitalWrite(7,0);
 }
 
 void loop() {
@@ -59,19 +61,23 @@ void loop() {
   bool right = false;
   bool is_pressed = false;
 
+  // 检测输入
+
   if (Serial.available()) {
 
     int x = Serial.read();
 
     Serial.println(x);
 
-    if (x == 49) up = true;
+    if (x == 56) up = true;
     if (x == 50) down = true;
-    if (x == 51) left = true;
-    if (x == 52) right = true;
+    if (x == 52) left = true;
+    if (x == 54) right = true;
 
     if (x != 13) is_pressed = true;
   }
+
+  // 执行操作
 
   if (up) {
     Serial.println("up");
@@ -206,8 +212,40 @@ void loop() {
     }
   }
 
+  bool is_2048 = false;
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      if (mapp[i][j] == 2048) {
+        is_2048 = true;
+      }
+    }
+  }
+
+  if (is_2048) {
+    lcd.clear();
+    lcd.println("Game over");
+    lcd.println("You win");
+    return;
+  }
+
+  if (!canContinue()) {
+    lcd.clear();
+    lcd.println("Game over");
+    lcd.println("You lose");
+
+    return;
+  }
+
   if (is_pressed) {
-    randomInt();
+    bool is_empty = false;
+    for (int i = 1; i < 4; i++) {
+      for (int j = 1; j < 4; j++) {
+        if (mapp[i][j] == 0) {
+          is_empty = true;
+        }
+      }
+    }
+    if (is_empty) randomInt();
   }
 }
 
@@ -273,4 +311,36 @@ void initialRandomInt() {
 
   mapp[column][line1] = q;
   mapp[column][line2] = q;
+}
+
+bool canContinue() {
+  // 检查是否存在空位
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 4; ++j) {
+      if (mapp[i][j] == 0) {
+        return true;  // 有空位，可以继续
+      }
+    }
+  }
+
+  // 检查横向相邻是否有相同的数字
+  for (int i = 0; i < 4; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      if (mapp[i][j] == mapp[i][j + 1]) {
+        return true;  // 存在可合并的相邻块
+      }
+    }
+  }
+
+  // 检查纵向相邻是否有相同的数字
+  for (int j = 0; j < 4; ++j) {
+    for (int i = 0; i < 3; ++i) {
+      if (mapp[i][j] == mapp[i + 1][j]) {
+        return true;  // 存在可合并的相邻块
+      }
+    }
+  }
+
+  // 盘面已满且无法合并，游戏结束
+  return false;
 }

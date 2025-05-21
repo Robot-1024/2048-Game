@@ -63,19 +63,16 @@ void loop() {
 
   // 检测输入
 
-  if (Serial.available()) {
 
-    int x = Serial.read();
+  is_pressed = true;
 
-    Serial.println(x);
 
-    if (x == 56) up = true;
-    if (x == 50) down = true;
-    if (x == 52) left = true;
-    if (x == 54) right = true;
+  if (digitalRead(2) == 0) up = true;
+  else if (digitalRead(4) == 0) down = true;
+  else if (digitalRead(5) == 0) left = true;
+  else if (digitalRead(3) == 0) right = true;
+  else is_pressed = false;
 
-    if (x != 13) is_pressed = true;
-  }
 
   // 执行操作
 
